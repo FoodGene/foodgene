@@ -1,10 +1,16 @@
-import { useState } from 'react';
-import '../styles/Questionnaire.css';
+import React, { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { useAuth } from '@/context/AuthContext'
+import { ErrorMessage } from '@/components/ErrorMessage'
+import './QuestionnairePage.css'
 
-export default function Questionnaire({ dietType, onComplete }) {
-  const [currentStep, setCurrentStep] = useState(1);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+export const QuestionnairePage: React.FC = () => {
+  const navigate = useNavigate()
+  const { userId } = useAuth()
+  const [currentStep, setCurrentStep] = useState(1)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+
   const [formData, setFormData] = useState({
     height: '',
     weight: '',
@@ -13,135 +19,148 @@ export default function Questionnaire({ dietType, onComplete }) {
     mealType: '',
     activityLevel: '',
     goal: '',
-    weeklyEating: [],
+    weeklyEating: [] as string[],
     allergies: '',
-    existingConditions: ''
-  });
+    existingConditions: '',
+  })
 
-  const totalSteps = 6;
+  const totalSteps = 6
 
-  const updateFormData = (field, value) => {
+  const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
-    }));
-  };
+    }))
+  }
 
-  const toggleWeeklyEating = (item) => {
+  const toggleWeeklyEating = (item: string) => {
     setFormData(prev => ({
       ...prev,
       weeklyEating: prev.weeklyEating.includes(item)
         ? prev.weeklyEating.filter(x => x !== item)
         : [...prev.weeklyEating, item]
-    }));
-  };
+    }))
+  }
 
-  const handleNext = () => {
-    if (validateStep(currentStep)) {
-      setCurrentStep(currentStep + 1);
-      setError(null);
-    }
-  };
-
-  const handleBack = () => {
-    if (currentStep > 1) {
-      setCurrentStep(currentStep - 1);
-      setError(null);
-    }
-  };
-
-  const validateStep = (step) => {
+  const validateStep = (step: number): boolean => {
     switch (step) {
       case 1:
         if (!formData.height || !formData.weight) {
-          setError('Please fill in height and weight');
-          return false;
+          setError('Please fill in height and weight')
+          return false
         }
-        return true;
+        return true
       case 2:
         if (!formData.age || !formData.gender) {
-          setError('Please select age and gender');
-          return false;
+          setError('Please select age and gender')
+          return false
         }
-        return true;
+        return true
       case 3:
         if (!formData.mealType) {
-          setError('Please select meal type');
-          return false;
+          setError('Please select meal type')
+          return false
         }
-        return true;
+        return true
       case 4:
         if (!formData.activityLevel || !formData.goal) {
-          setError('Please select activity level and goal');
-          return false;
+          setError('Please select activity level and goal')
+          return false
         }
-        return true;
+        return true
       case 5:
         if (formData.weeklyEating.length === 0) {
-          setError('Please select at least one eating habit');
-          return false;
+          setError('Please select at least one eating habit')
+          return false
         }
-        return true;
+        return true
       default:
-        return true;
+        return true
     }
-  };
+  }
+
+  const handleNext = () => {
+    if (validateStep(currentStep)) {
+      setCurrentStep(currentStep + 1)
+      setError('')
+    }
+  }
+
+  const handleBack = () => {
+    if (currentStep > 1) {
+      setCurrentStep(currentStep - 1)
+      setError('')
+    }
+  }
 
   const handleSubmit = async () => {
-    if (!validateStep(currentStep)) return;
+    if (!validateStep(currentStep)) return
 
-    setLoading(true);
-    setError(null);
+    setLoading(true)
+    setError('')
 
     try {
+      // Get email and dietType from storage
+      const userEmail = localStorage.getItem('userEmail') || userId || 'unknown'
+      const dietType = localStorage.getItem('dietType') || 'normal'
+
       const response = await fetch('/api/questionnaire/submit', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          email: userEmail,
           ...formData,
           dietType
         })
-      });
+      })
 
       if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.detail || 'Failed to submit questionnaire');
+        const data = await response.json()
+        throw new Error(data.detail || 'Failed to submit questionnaire')
       }
 
-      const data = await response.json();
-      onComplete(data);
+      // Store profile data
+      const data = await response.json()
+      localStorage.setItem('userProfile', JSON.stringify(data.profile))
+
+      // Redirect to dashboard
+      navigate('/dashboard')
     } catch (err) {
-      setError(err.message);
+      setError(err instanceof Error ? err.message : 'An error occurred')
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   return (
-    <div className="questionnaire-container">
-      <div className="questionnaire-card">
+    <div className="questionnaire-page">
+      <div className="questionnaire-container">
         <div className="progress-bar">
-          <div className="progress-fill" style={{ width: `${(currentStep / totalSteps) * 100}%` }}></div>
+          <div
+            className="progress-fill"
+            style={{ width: `${(currentStep / totalSteps) * 100}%` }}
+          ></div>
         </div>
 
-        <h2>Health & Fitness Questionnaire</h2>
-        <p className="step-indicator">Step {currentStep} of {totalSteps}</p>
+        <h1>Health & Fitness Questionnaire</h1>
+        <p className="step-indicator">
+          Step {currentStep} of {totalSteps}
+        </p>
 
-        {error && <div className="error-message">{error}</div>}
+        {error && (
+          <ErrorMessage message={error} onDismiss={() => setError('')} />
+        )}
 
         {/* Step 1: Height and Weight */}
         {currentStep === 1 && (
           <div className="question-section">
-            <h3>What are your body measurements?</h3>
+            <h2>Body Measurements</h2>
             <div className="form-group">
               <label>Height (cm)</label>
               <input
                 type="number"
                 value={formData.height}
-                onChange={(e) => updateFormData('height', e.target.value)}
+                onChange={(e) => handleInputChange('height', e.target.value)}
                 placeholder="e.g., 175"
               />
             </div>
@@ -150,7 +169,7 @@ export default function Questionnaire({ dietType, onComplete }) {
               <input
                 type="number"
                 value={formData.weight}
-                onChange={(e) => updateFormData('weight', e.target.value)}
+                onChange={(e) => handleInputChange('weight', e.target.value)}
                 placeholder="e.g., 75"
               />
             </div>
@@ -160,19 +179,22 @@ export default function Questionnaire({ dietType, onComplete }) {
         {/* Step 2: Age and Gender */}
         {currentStep === 2 && (
           <div className="question-section">
-            <h3>Personal Information</h3>
+            <h2>Personal Information</h2>
             <div className="form-group">
               <label>Age</label>
               <input
                 type="number"
                 value={formData.age}
-                onChange={(e) => updateFormData('age', e.target.value)}
+                onChange={(e) => handleInputChange('age', e.target.value)}
                 placeholder="e.g., 25"
               />
             </div>
             <div className="form-group">
               <label>Gender</label>
-              <select value={formData.gender} onChange={(e) => updateFormData('gender', e.target.value)}>
+              <select
+                value={formData.gender}
+                onChange={(e) => handleInputChange('gender', e.target.value)}
+              >
                 <option value="">Select gender</option>
                 <option value="Male">Male</option>
                 <option value="Female">Female</option>
@@ -185,17 +207,21 @@ export default function Questionnaire({ dietType, onComplete }) {
         {/* Step 3: Meal Type */}
         {currentStep === 3 && (
           <div className="question-section">
-            <h3>What's your meal preference?</h3>
+            <h2>Meal Preference</h2>
             <div className="options">
-              {['Vegetarian', 'Non-Vegetarian', 'Vegan', 'Pescatarian'].map(option => (
-                <button
-                  key={option}
-                  className={`option-btn ${formData.mealType === option ? 'selected' : ''}`}
-                  onClick={() => updateFormData('mealType', option)}
-                >
-                  {option}
-                </button>
-              ))}
+              {['Vegetarian', 'Non-Vegetarian', 'Vegan', 'Pescatarian'].map(
+                (option) => (
+                  <button
+                    key={option}
+                    className={`option-btn ${
+                      formData.mealType === option ? 'selected' : ''
+                    }`}
+                    onClick={() => handleInputChange('mealType', option)}
+                  >
+                    {option}
+                  </button>
+                )
+              )}
             </div>
           </div>
         )}
@@ -203,21 +229,29 @@ export default function Questionnaire({ dietType, onComplete }) {
         {/* Step 4: Activity and Goal */}
         {currentStep === 4 && (
           <div className="question-section">
-            <h3>Activity Level & Goal</h3>
+            <h2>Activity Level & Goal</h2>
             <div className="form-group">
               <label>Activity Level</label>
-              <select value={formData.activityLevel} onChange={(e) => updateFormData('activityLevel', e.target.value)}>
+              <select
+                value={formData.activityLevel}
+                onChange={(e) => handleInputChange('activityLevel', e.target.value)}
+              >
                 <option value="">Select activity level</option>
-                <option value="Sedentary">Sedentary (little or no exercise)</option>
+                <option value="Sedentary">
+                  Sedentary (little or no exercise)
+                </option>
                 <option value="Light">Light (1-3 days/week)</option>
                 <option value="Moderate">Moderate (3-5 days/week)</option>
                 <option value="Active">Active (6-7 days/week)</option>
-                <option value="Very Active">Very Active (intense daily exercise)</option>
+                <option value="Very Active">Very Active (intense daily)</option>
               </select>
             </div>
             <div className="form-group">
               <label>Goal</label>
-              <select value={formData.goal} onChange={(e) => updateFormData('goal', e.target.value)}>
+              <select
+                value={formData.goal}
+                onChange={(e) => handleInputChange('goal', e.target.value)}
+              >
                 <option value="">Select goal</option>
                 <option value="Lose Weight">Lose Weight</option>
                 <option value="Maintain">Maintain Weight</option>
@@ -231,7 +265,7 @@ export default function Questionnaire({ dietType, onComplete }) {
         {/* Step 5: Weekly Eating Habits */}
         {currentStep === 5 && (
           <div className="question-section">
-            <h3>What do you usually eat in a week?</h3>
+            <h2>Weekly Eating Habits</h2>
             <p className="sub-text">Select all that apply</p>
             <div className="options-grid">
               {[
@@ -244,11 +278,13 @@ export default function Questionnaire({ dietType, onComplete }) {
                 'Fruits',
                 'Dairy & Milk',
                 'Nuts & Seeds',
-                'Legumes & Beans'
-              ].map(item => (
+                'Legumes & Beans',
+              ].map((item) => (
                 <button
                   key={item}
-                  className={`option-btn ${formData.weeklyEating.includes(item) ? 'selected' : ''}`}
+                  className={`option-btn ${
+                    formData.weeklyEating.includes(item) ? 'selected' : ''
+                  }`}
                   onClick={() => toggleWeeklyEating(item)}
                 >
                   {item}
@@ -261,13 +297,13 @@ export default function Questionnaire({ dietType, onComplete }) {
         {/* Step 6: Allergies and Conditions */}
         {currentStep === 6 && (
           <div className="question-section">
-            <h3>Additional Information</h3>
+            <h2>Additional Information</h2>
             <div className="form-group">
               <label>Allergies (comma separated)</label>
               <input
                 type="text"
                 value={formData.allergies}
-                onChange={(e) => updateFormData('allergies', e.target.value)}
+                onChange={(e) => handleInputChange('allergies', e.target.value)}
                 placeholder="e.g., peanuts, gluten, dairy"
               />
             </div>
@@ -276,7 +312,9 @@ export default function Questionnaire({ dietType, onComplete }) {
               <input
                 type="text"
                 value={formData.existingConditions}
-                onChange={(e) => updateFormData('existingConditions', e.target.value)}
+                onChange={(e) =>
+                  handleInputChange('existingConditions', e.target.value)
+                }
                 placeholder="e.g., diabetes, high blood pressure"
               />
             </div>
@@ -313,5 +351,7 @@ export default function Questionnaire({ dietType, onComplete }) {
         </div>
       </div>
     </div>
-  );
+  )
 }
+
+export default QuestionnairePage

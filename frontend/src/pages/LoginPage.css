@@ -43,6 +43,35 @@
   font-size: 1rem;
 }
 
+.toggle-auth {
+  text-align: center;
+  margin-bottom: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+.toggle-auth p {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--gray-600);
+}
+
+.toggle-btn {
+  background: none;
+  border: none;
+  color: #0284c7;
+  cursor: pointer;
+  font-weight: 600;
+  margin-left: 0.5rem;
+  text-decoration: underline;
+  padding: 0;
+  font-size: 0.875rem;
+}
+
+.toggle-btn:hover {
+  color: #0369a1;
+}
+
 .demo-info {
   background: #dbeafe;
   border: 1px solid #bfdbfe;

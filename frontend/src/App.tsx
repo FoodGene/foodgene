@@ -11,6 +11,8 @@ import ProfilePage from '@/pages/ProfilePage'
 import FoodRequestPage from '@/pages/FoodRequestPage'
 import CropYieldPage from '@/pages/CropYieldPage'
 import ResearchSummaryPage from '@/pages/ResearchSummaryPage'
+import DietTypePage from '@/pages/DietTypePage'
+import QuestionnairePage from '@/pages/QuestionnairePage'
 import './App.css'
 
 function App() {
@@ -22,6 +24,8 @@ function App() {
           <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/diet-type" element={<DietTypePage />} />
+            <Route path="/questionnaire" element={<QuestionnairePage />} />
 
             {/* Protected Routes */}
             <Route

@@ -1,6 +1,6 @@
 import '../styles/Header.css';
 
-export default function Header() {
+export default function Header({ onLogout }) {
   return (
     <header className="header">
       <div className="header-container">
@@ -15,7 +15,11 @@ export default function Header() {
           <a href="#about">About</a>
         </nav>
         
-        <button className="login-btn">Login</button>
+        {onLogout && (
+          <button className="login-btn" onClick={onLogout}>
+            Logout
+          </button>
+        )}
       </div>
     </header>
   );
