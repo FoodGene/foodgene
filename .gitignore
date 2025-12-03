@@ -1,0 +1,35 @@
+# Node
+node_modules/
+npm-debug.log
+
+# Build
+dist/
+build/
+
+# Environment
+.env
+.env.local
+.env.production
+
+# Python
+__pycache__/
+*.pyc
+
+# Logs
+logs/
+*.log
+
+# IDE
+.vscode/
+.idea/
+
+# ML model weights
+*.pkl
+*.pt
+*.pth
+*.npz
+*.h5
+
+# OS files
+.DS_Store
+Thumbs.db
