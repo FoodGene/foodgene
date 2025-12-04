@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Doughnut } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
@@ -61,6 +62,7 @@ function calculateMacros(calories, goal) {
 }
 
 export default function Generator({ onPlanGenerated }) {
+  const navigate = useNavigate();
   const [height, setHeight] = useState(175);
   const [weight, setWeight] = useState(70);
   const [age, setAge] = useState(25);
@@ -130,7 +132,19 @@ export default function Generator({ onPlanGenerated }) {
       }
 
       const data = await response.json();
-      onPlanGenerated(data.plan, data.plan_id);
+      // Navigate to meal plan page with state
+      navigate('/meal-plan', {
+        state: {
+          plan: data.plan,
+          planId: data.plan_id,
+          calories,
+          macros
+        }
+      });
+      // Also call the callback if it exists (for backward compatibility)
+      if (onPlanGenerated) {
+        onPlanGenerated(data.plan, data.plan_id);
+      }
     } catch (err) {
       setError(err.message);
     } finally {

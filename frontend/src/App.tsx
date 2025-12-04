@@ -13,6 +13,7 @@ import CropYieldPage from '@/pages/CropYieldPage'
 import ResearchSummaryPage from '@/pages/ResearchSummaryPage'
 import DietTypePage from '@/pages/DietTypePage'
 import QuestionnairePage from '@/pages/QuestionnairePage'
+import { MealPlanPage } from '@/pages/MealPlanPage'
 import './App.css'
 
 function App() {
@@ -26,6 +27,7 @@ function App() {
             <Route path="/login" element={<LoginPage />} />
             <Route path="/diet-type" element={<DietTypePage />} />
             <Route path="/questionnaire" element={<QuestionnairePage />} />
+            <Route path="/meal-plan" element={<MealPlanPage />} />
 
             {/* Protected Routes */}
             <Route

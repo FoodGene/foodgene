@@ -24,12 +24,12 @@ export const DashboardPage: React.FC = () => {
   const loadData = async () => {
     try {
       setLoading(true)
-      // Try to load profile, but don't fail if it doesn't exist
+      // Try to load profile from backend
       try {
         await apiClient.getMyProfile()
       } catch (err) {
         // Profile might not exist yet, that's okay
-        logger.info('Profile not found, using questionnaire data only')
+        console.info('Profile not found, using questionnaire data only')
       }
 
       // Load user profile from localStorage (set during questionnaire)
